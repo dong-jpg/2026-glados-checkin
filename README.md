@@ -110,9 +110,11 @@
 
 在 **Edge 浏览器** 的扩展商店搜索 `cookie`，安装 **Cookie-Editor** 或类似的 Cookie 管理扩展：
 
-![Cookie 扩展搜索](images/cookie-extension.png)
+![Cookie-Editor 扩展](images/cookie-extension.png)
 
-> 💡 **提示**：只要能显示 `koa:sess` 和 `koa:sess.sig` 这两个 Cookie 的扩展都可以使用！
+> 💡 **提示**：以下任意一个扩展都可以使用，只要能显示 `koa:sess` 和 `koa:sess.sig` 这两个 Cookie 就行！
+
+![可选的 Cookie 扩展](images/cookie-alternative.png)
 
 #### 2.2 登录 GLaDOS 并获取 Cookie
 
