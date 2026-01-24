@@ -2,16 +2,68 @@
 
 <div align="center">
 
-**🎯 2026年最简单、门槛最低的 GLaDOS 自动签到方案**
+**🎯 2026年唯一经过验证可用的 GLaDOS 自动签到方案**
 
 **零代码 · 零服务器 · 完全免费 · 微信推送**
 
 [![Auto Checkin](https://github.com/lankerr/2026-glados-checkin/actions/workflows/checkin.yml/badge.svg)](https://github.com/lankerr/2026-glados-checkin/actions)
 [![GitHub Stars](https://img.shields.io/github/stars/lankerr/2026-glados-checkin?style=social)](https://github.com/lankerr/2026-glados-checkin)
+[![Last Update](https://img.shields.io/badge/更新时间-2026--01--25-brightgreen)](https://github.com/lankerr/2026-glados-checkin)
 
 **⭐ 如果对你有帮助，请给一个 Star 支持一下！**
 
 </div>
+
+---
+
+## 🔥 2026年1月25日 重大更新
+
+> **⚠️ 重要：如果你使用其他签到脚本失败，显示 "please checkin via https://glados.cloud"，请使用本项目！**
+
+GLaDOS 在 2026 年初进行了 API 更新，**绝大多数旧签到脚本已失效**。我们通过抓包分析发现了问题：
+
+| 问题 | 旧脚本 | 本项目（已修复） |
+|------|--------|------------------|
+| 签到 Token | `glados.one` ❌ | `glados.cloud` ✅ |
+| 域名支持 | rocks/network ❌ | cloud ✅ |
+| 签到结果 | "please checkin via..." | "Checkin!" 或 "Repeats" ✅ |
+
+### 🔬 我们的探索过程
+
+<details>
+<summary><b>点击查看完整的问题排查过程</b></summary>
+
+#### 问题现象
+- GitHub Actions 可以正常运行
+- 推送消息显示 "成功0/1"
+- 签到结果始终为 "please checkin via https://glados.cloud"
+- 手动点击签到按钮正常，但机器人签到无效
+
+#### 排查步骤
+
+1️⃣ **浏览器抓包分析**
+- 使用 Chrome DevTools 抓取真实签到请求
+- 对比浏览器请求和 Python 脚本请求的差异
+
+2️⃣ **尝试的方案（失败）**
+- ❌ 添加更多 Headers（sec-ch-ua、sec-fetch-* 等）
+- ❌ 使用 requests.Session 保持会话
+- ❌ 使用 curl_cffi 模拟浏览器 TLS 指纹
+- ❌ 添加代理配置
+
+3️⃣ **最终发现**
+通过对比不同 token 值的请求结果：
+```python
+# 失败 ❌
+{'token': 'glados.one'}  → "please checkin via https://glados.cloud"
+
+# 成功 ✅  
+{'token': 'glados.cloud'} → "Checkin Repeats! Please Try Tomorrow"
+```
+
+**问题根源**：GLaDOS 更新了 API，签到 token 必须从 `glados.one` 改为 `glados.cloud`！
+
+</details>
 
 ---
 
@@ -32,7 +84,8 @@
 | ⏰ **每日两次** | 早上 9:30 + 晚上 21:30 自动签到 |
 | 🔄 **失败重试** | 首次失败自动重试一次 |
 | 📱 **微信推送** | PushPlus 漂亮 HTML 报告 |
-| ☁️ **Cloud优先** | 自动切换可用域名 |
+| ☁️ **2026 API** | 适配最新 glados.cloud API |
+| 🔧 **持续维护** | 发现问题及时修复 |
 
 ---
 
@@ -251,7 +304,16 @@ else:
 <details>
 <summary><b>Q: 显示 "please checkin via https://glados.cloud" 怎么办？</b></summary>
 
-这表示今天已经签到过了，明天会正常显示。
+这表示你使用的签到脚本已过期！GLaDOS 在 2026 年更新了 API，旧脚本的 token 值 `glados.one` 已失效。
+
+**解决方案**：使用本项目，我们已经修复了这个问题（token 改为 `glados.cloud`）。
+
+</details>
+
+<details>
+<summary><b>Q: 显示 "Checkin Repeats! Please Try Tomorrow" 是什么意思？</b></summary>
+
+这表示**今天已经成功签到过了**！这是正常的成功响应，说明签到功能正常工作。
 
 </details>
 
@@ -311,6 +373,33 @@ cookie1&cookie2&cookie3
 
 ---
 
+## � 更新日志
+
+### v1.1.0 (2026-01-25) 🔥 重大修复
+
+**问题**：签到始终返回 "please checkin via https://glados.cloud"，导致机器人无法签到。
+
+**原因**：GLaDOS 官方更新了 API，签到 token 必须从 `glados.one` 改为 `glados.cloud`。
+
+**修复**：更新 `checkin.py` 中的 token 参数。
+
+**排查过程**：
+1. 使用浏览器 DevTools 抓包分析真实签到请求
+2. 对比 Python 脚本与浏览器请求的差异
+3. 尝试添加 Headers、模拟 TLS 指纹等方案（均无效）
+4. 最终通过测试不同 token 值发现问题根源
+
+> 💡 如果你在使用其他签到项目遇到同样问题，可以参考本项目的修复方案！
+
+### v1.0.0 (2026-01-20)
+
+- 初始版本发布
+- 支持 glados.cloud 域名
+- PushPlus 微信推送
+- GitHub Actions 自动签到
+
+---
+
 ## 📝 License
 
 MIT
@@ -320,6 +409,8 @@ MIT
 <div align="center">
 
 **Made with ❤️ for GLaDOS users in 2026**
+
+**🔧 本项目经过 2026-01-25 抓包验证，确认可用！**
 
 **⭐ Star 一下，支持作者持续更新！⭐**
 
