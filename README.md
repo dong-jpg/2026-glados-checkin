@@ -1,22 +1,74 @@
-# 🚀 2026 GLaDOS 自动签到
+# 🎁 每天+20积分，5分钟搞定 GLaDOS 自动签到
 
 <div align="center">
 
-**🎯 2026年唯一经过验证可用的 GLaDOS 自动签到方案**
+**你不用写代码 · 不用买服务器 · 不用每天登录**
 
-**零代码 · 零服务器 · 完全免费 · 微信推送**
+**一次配置，永久自动，每天 9:30 / 21:30 签到**
+
+---
+
+### ✨ 为什么选择本项目？
+
+| 优势 | 说明 |
+|------|------|
+| ✅ **2026年验证可用** | 经过实测，确认在2026年1月正常工作 |
+| ✅ **绝对可用** | 修复了其他脚本失效的问题（token更新为glados.cloud） |
+| ✅ **新手友好** | 全程图解，不会也能照着做 |
+| ✅ **作者持续维护** | 遇到问题提Issue，作者很乐意帮忙 |
+
+---
+
+### 📱 签到成功预览
+
+![签到成功示例](images/success.jpg)
+
+> **每天签到能获得 +12 ~ +20 积分，累积可兑换会员时长！**
+
+---
+
+### 🚀 3步搞定，永久自动签到
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   ① Fork 项目    ──→  点一下右上角 Fork 按钮                 │
+│                                                             │
+│   ② 配置 Cookie  ──→  浏览器复制一下，贴到 GitHub Secrets    │
+│                                                             │
+│   ③ 配置 cron    ──→  5分钟填好，永久有效                    │
+│                                                             │
+│   ✅ 完成！每天自动签到 + 微信通知                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**[👉 点击开始配置](#-快速部署3步搞定-)**
+
+---
 
 [![Auto Checkin](https://github.com/lankerr/2026-glados-checkin/actions/workflows/checkin.yml/badge.svg)](https://github.com/lankerr/2026-glados-checkin/actions)
 [![GitHub Stars](https://img.shields.io/github/stars/lankerr/2026-glados-checkin?style=social)](https://github.com/lankerr/2026-glados-checkin)
-[![Last Update](https://img.shields.io/badge/更新时间-2026--01--25-brightgreen)](https://github.com/lankerr/2026-glados-checkin)
 
-**⭐ 如果对你有帮助，请给一个 Star 支持一下！**
+**⭐ 觉得有用？点个 Star 支持一下！**
 
 </div>
 
 ---
 
-## 🔥 2026年1月25日 重大更新
+## 💡 重要说明
+
+> 为了确保定时签到稳定运行，推荐使用 **cron-job.org**（免费服务）来触发签到。
+>
+> GitHub Actions 的自带定时功能对新仓库不太稳定，可能不会自动触发。
+>
+> **别担心！** 配置 cron-job.org 只需要额外 5 分钟，一次搞定永久有效。
+>
+> [👉 跳转查看 cron-job.org 配置教程](#-推荐方案-cron-joborg-配置定时)
+
+---
+
+## 🔥 为什么你需要这个？
 
 > **⚠️ 重要：如果你使用其他签到脚本失败，显示 "please checkin via https://glados.cloud"，请使用本项目！**
 
@@ -28,10 +80,10 @@ GLaDOS 在 2026 年初进行了 API 更新，**绝大多数旧签到脚本已失
 | 域名支持 | rocks/network ❌ | cloud ✅ |
 | 签到结果 | "please checkin via..." | "Checkin!" 或 "Repeats" ✅ |
 
-### 🔬 我们的探索过程
-
 <details>
-<summary><b>点击查看完整的问题排查过程</b></summary>
+<summary><b>🔬 技术细节：我们是怎样修复问题的（感兴趣的看）</b></summary>
+
+### 🔬 我们的探索过程
 
 #### 问题现象
 - GitHub Actions 可以正常运行
@@ -89,9 +141,10 @@ GLaDOS 在 2026 年初进行了 API 更新，**绝大多数旧签到脚本已失
 
 ---
 
-## 📚 给小白的科普
+<details>
+<summary><b>📚 给小白的科普：什么是 Fork、Cookie、Secrets？（新手必看）</b></summary>
 
-> 💡 如果你已经熟悉这些概念，可以跳过这部分直接看 [快速部署](#-快速部署5分钟搞定)
+> 💡 如果你已经熟悉这些概念，可以跳过这部分直接看 [快速部署](#-快速部署3步搞定-)
 
 <details>
 <summary><b>🍴 什么是 Fork？</b></summary>
@@ -145,9 +198,118 @@ GLaDOS 在 2026 年初进行了 API 更新，**绝大多数旧签到脚本已失
 
 </details>
 
+</details>
+
 ---
 
-## 🚀 快速部署（5分钟搞定）
+## ⭐ 推荐方案：cron-job.org 配置定时
+
+由于 GitHub Actions 对新仓库的定时任务有限制（[详见说明](#-为什么-github-actions-定时不可靠)），我们推荐使用 **cron-job.org** 这项免费服务来触发签到。
+
+### 配置步骤（5分钟搞定）
+
+#### 第一步：获取 GitHub Personal Access Token
+
+1. 访问 [https://github.com/settings/tokens](https://github.com/settings/tokens)
+2. 点击 **Generate new token** → **Generate new token (classic)**
+3. 按下图配置：
+
+![GitHub Token 设置](images/github_access_tokens.png)
+
+| 选项 | 值 |
+|------|-----|
+| **Name** | `glados-cron`（任意名称） |
+| **Expiration** | 选择 90 天或更久 |
+| **勾选权限** | ✅ **workflow**（在 repo 下方） |
+
+4. 点击底部 **Generate token**
+5. **立即复制生成的 token**（格式类似 `ghp_1234567890abcdef...`，只显示一次！）
+
+> 💡 Token 示例：`ghp_NXLTUqT51BFfilsaZNlaVstacNnkZc4PYCNa`
+
+#### 第二步：注册 cron-job.org
+
+1. 访问 [https://cron-job.org](https://cron-job.org) 注册账号（免费）
+2. 注册后登录，点击 **Create Cronjob** 创建任务
+
+#### 第三步：创建早签到任务（9:30）
+
+![创建 Cron 任务](images/create_corn_job.png)
+
+按照以下配置填写：
+
+**基本信息**：
+
+| 选项 | 填写 |
+|------|------|
+| **Title** | `GLaDOS 早签到` |
+| **URL** | `https://api.github.com/repos/你的用户名/2026-glados-checkin/actions/workflows/checkin.yml/dispatches` |
+
+> ⚠️ **重要**：把 `你的用户名` 改成你的 GitHub 用户名！比如 `lankerr`
+
+**执行时间**：选择每天 **09:30**（Asia/Shanghai 时区）
+
+**高级配置**（点击 Advanced 展开）：
+
+![高级配置](images/cron_advanced.png)
+
+| 选项 | 值 |
+|------|-----|
+| **Request method** | POST |
+| **Time zone** | Asia/Shanghai |
+
+**请求头（Headers）**：点击 "+ 添加" 添加三行：
+
+| Key | Value |
+|-----|-------|
+| `Accept` | `application/vnd.github.v3+json` |
+| `Authorization` | `token 你复制的GitHub_Token` |
+| `Content-Type` | `application/json` |
+
+> ⚠️ **注意**：Authorization 的值是 `token ` + **空格** + 你的 Token，例如：`token ghp_NXLTUqT51BFfilsaZNlaVstacNnkZc4PYCNa`
+
+**请求体（Request body）**：选择 Raw Body，填入：
+```json
+{"ref": "main"}
+```
+
+![常用配置预览](images/cron_common.png)
+
+配置完成后点击 **Save** 保存。
+
+#### 第四步：创建晚签到任务（21:30）
+
+复制早签到任务，创建第二个任务：
+- Title 改为 `GLaDOS 晚签到`
+- 执行时间改为 **21:30**
+- 其他配置完全相同
+
+#### 第五步：测试验证
+
+1. 在任务列表点击 **Test run** 测试
+2. 成功会显示 **204 No Content** ✅
+
+![测试成功](images/cron_success.png)
+
+3. 到 GitHub 仓库的 **Actions** 页面查看，应该有新的运行记录
+
+---
+
+### 🚨 常见陷阱与错误
+
+| 错误 | 现象 | 原因 | 解决方法 |
+|------|------|------|---------|
+| **401 Unauthorized** | 认证失败 | Authorization 格式错误 | 必须是 `token ghp_xxx`，注意 `token ` 后有空格 |
+| **422 Unprocessable Entity** | 请求无法处理 | Body 缺少 ref 参数 | 改为 `{"ref": "main"}` |
+| Accept 被截断 | 配置错误 | 输入框显示不全 | 完整值：`application/vnd.github.v3+json` |
+| Token 有空格 | 认证失败 | Token 被意外截断 | Token 是连续字符串，中间不能有空格 |
+| 权限不足 | 403 错误 | Token 无 workflow 权限 | 重新生成 Token，勾选 workflow 权限 |
+
+> 💡 **小贴士**：遇到 401/422 错误时，先检查上面三行 Headers 是否完全正确！
+
+---
+
+## 🚀 快速部署（3步搞定）
 
 ### 第一步：Fork 本仓库
 
@@ -295,11 +457,67 @@ else:
 | **09:30** | 早间签到 |
 | **21:30** | 晚间签到 |
 
-> 💡 GitHub Actions 可能有 5-30 分钟的延迟，这是正常现象。
+> 💡 **重要**：请使用 [cron-job.org](#-推荐方案-cron-joborg-配置定时) 配置定时任务。GitHub Actions 的 schedule 功能对新仓库不可靠，可能不会自动触发！
 
 ---
 
 ## ❓ 常见问题
+
+<details>
+<summary><b>Q: 为什么推荐 cron-job.org 而不是直接用 GitHub Actions 定时？</b></summary>
+
+**GitHub Actions 的定时任务（schedule trigger）对新仓库有严格限制**：
+
+| 仓库类型 | 定时任务状态 | 说明 |
+|----------|-------------|------|
+| 新仓库 | ❌ 不触发 | GitHub 会暂停定时任务执行 |
+| 不活跃仓库 | ❌ 不触发 | 长时间没有新活动的仓库 |
+| 活跃仓库 | ✅ 正常触发 | 需要持续活跃 1-2 周后才恢复 |
+
+**现象**：
+- 手动点击 "Run workflow" 可以正常运行 ✅
+- 定时任务不会自动执行 ❌
+- Actions 页面没有定时运行记录
+
+**解决方案**：
+- **推荐**：使用 cron-job.org（免费、稳定、立即生效）
+- **备选**：连续 1-2 周每天手动触发一次 + keep-alive.yml 维护活跃度
+
+相关 GitHub Discussions：
+- [Discussion #185355](https://github.com/orgs/community/discussions/185355) - 新仓库定时任务不运行
+- [Discussion #185212](https://github.com/orgs/community/discussions/185212) - scheduled workflow 从不触发
+
+[🔝 回到开头了解推荐方案](#-推荐方案-cron-joborg-配置定时)
+
+</details>
+
+<details>
+<summary><b>Q: cron-job.org 测试返回 401/422 错误怎么办？</b></summary>
+
+请对照以下检查：
+
+**401 Unauthorized（认证失败）**：
+```
+❌ Authorization: ghp_abc123...
+✅ Authorization: token ghp_abc123...
+```
+注意：`token ` 前缀后面必须有一个**空格**！
+
+**422 Unprocessable Entity（请求无法处理）**：
+```
+❌ Body: {}
+✅ Body: {"ref": "main"}
+```
+GitHub API 要求必须指定分支名。
+
+**其他检查**：
+- Accept 头是否完整：`application/vnd.github.v3+json`
+- Token 是否有 `workflow` 权限
+- Token 是否过期（检查 Expiration 设置）
+
+[🔝 查看完整陷阱列表](#-常见陷阱与错误)
+
+</details>
 
 <details>
 <summary><b>Q: 显示 "please checkin via https://glados.cloud" 怎么办？</b></summary>
@@ -351,6 +569,44 @@ cookie1&cookie2&cookie3
 3. 如果还是不行，欢迎提 Issue！
 
 </details>
+
+---
+
+## ⚠️ 为什么 GitHub Actions 定时不可靠？
+
+### 问题背景
+
+从 2025 年底开始，GitHub 对 **Actions 的定时任务（schedule trigger）** 实施了更严格的限制，影响了大量新仓库和不活跃仓库。
+
+### 具体表现
+
+| 现象 | 说明 |
+|------|------|
+| ✅ 手动运行正常 | 点击 "Run workflow" 可以成功执行 |
+| ❌ 定时不执行 | 到了设定时间没有任何运行记录 |
+| ⏳ 长时间无反应 | 等待数天仍不会自动触发 |
+
+### 根本原因
+
+这是 GitHub 的**资源管理策略**，用于减少闲置资源消耗：
+
+1. **新仓库限制**：刚创建的仓库，定时任务默认不会自动运行
+2. **活跃度要求**：仓库需要有持续的活动（commit、issue、PR 等）
+3. **恢复周期**：通常需要 1-2 周的活跃期才会恢复定时任务
+
+### 解决方案对比
+
+| 方案 | 优点 | 缺点 | 推荐度 |
+|------|------|------|--------|
+| **cron-job.org** | 免费、稳定、立即生效 | 需要注册第三方服务 | ⭐⭐⭐⭐⭐ |
+| GitHub Actions + keep-alive | 完全在 GitHub 内 | 需等待 1-2 周恢复期 | ⭐⭐ |
+| 每天手动触发 | 简单直接 | 无法自动化 | ⭐ |
+
+### 已采取的措施
+
+本项目已包含 `keep-alive.yml` 文件，每天自动更新时间戳以维持仓库活跃度。但这对**新仓库**仍然需要 1-2 周的积累期。
+
+**因此强烈推荐使用 cron-job.org！** [🔝 查看配置教程](#-推荐方案-cron-joborg-配置定时)
 
 ---
 
