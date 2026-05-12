@@ -1,0 +1,32 @@
+name: GLaDOS 2026 Checkin
+
+on:
+  schedule:
+    - cron: '30 1 * * *'    # 北京时间 9:30
+    - cron: '30 13 * * *'   # 北京时间 21:30
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  checkin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: python checkin.py
+        env:
+          GLADOS_COOKIE: ${{ secrets.GLADOS_COOKIE }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          GLADOS_EXCHANGE_PLAN: ${{ secrets.GLADOS_EXCHANGE_PLAN }}
+      - name: Retry on Failure
+        if: failure()
+        run: |
+          echo "First attempt failed, retrying in 60s..."
+          sleep 60
+          python checkin.py
