@@ -83,7 +83,7 @@ class LogEmoji:
     INFO = "ℹ️"
 
 
-DOMAINS = ["glados.cloud", "railgun.info"]
+DOMAINS = ["railgun.info"]
 
 EXCHANGE_PLANS = {
     "plan100": 100,
