@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-2026 GLaDOS 自动签到 (积分增强版 + 自动兑换)
+2026 GLaDOS 自动签到 (积分增强版)
 
 功能：
 - 全自动签到
 - 精准获取当前积分 (Points)
-- 积分满500自动兑换 (plan500)
-- PushPlus 微信推送（包含积分、剩余天数、签到结果、兑换状态）
-- 智能多域名切换 (优先 glados.cloud, 备选 railgun.info)
+- PushPlus 微信推送（包含积分、剩余天数、签到结果）
+- 智能多域名切换 (优先 glados.cloud)
 - 支持 Cookie-Editor 导出格式
 """
 
@@ -37,9 +36,6 @@ EXCHANGE_PLANS = {
     "plan200": 200,
     "plan500": 500,
 }
-
-# 默认兑换计划
-DEFAULT_EXCHANGE_PLAN = "plan500"
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -78,20 +74,12 @@ def extract_cookie(raw: str):
 def get_cookies():
     raw = os.environ.get("GLADOS_COOKIE", "")
     if not raw:
-        log("未配置 GLADOS_COOKIE")
+        log("❌ 未配置 GLADOS_COOKIE")
         return []
 
     # Split by enter or &
     sep = '\n' if '\n' in raw else '&'
     return [extract_cookie(c) for c in raw.split(sep) if c.strip()]
-
-def get_exchange_plan():
-    """获取兑换计划，默认 plan500"""
-    plan = os.environ.get("GLADOS_EXCHANGE_PLAN", DEFAULT_EXCHANGE_PLAN)
-    if plan not in EXCHANGE_PLANS:
-        log(f"兑换计划 '{plan}' 无效，使用默认 {DEFAULT_EXCHANGE_PLAN}")
-        plan = DEFAULT_EXCHANGE_PLAN
-    return plan
 
 # ================= 核心逻辑 =================
 
@@ -105,6 +93,7 @@ class GLaDOS:
         self.points_change = "?"
         self.exchange_info = ""
         self.exchange_result = ""
+        self.plan = "?"
 
     def req(self, method, path, data=None):
         """带自动域名切换的请求"""
@@ -122,16 +111,12 @@ class GLaDOS:
                     resp = requests.post(url, headers=h, json=data, timeout=10)
 
                 if resp.status_code == 200:
-                    self.domain = d
+                    self.domain = d # Remember working domain
                     return resp.json()
             except Exception as e:
-                log(f"{d} 请求失败: {e}")
+                log(f"⚠️ {d} 请求失败: {e}")
                 continue
         return None
-
-    def _get_domain_token(self):
-        """获取当前域名的 token（去掉 https:// 前缀）"""
-        return self.domain.replace("https://", "")
 
     def get_status(self):
         """获取状态：天数、邮箱"""
@@ -147,6 +132,7 @@ class GLaDOS:
         """获取积分、变化历史、兑换计划"""
         res = self.req('GET', '/api/user/points')
         if res and 'points' in res:
+            # 当前积分
             self.points = str(res.get('points', '0')).split('.')[0]
 
             # 最近一次积分变化
@@ -166,16 +152,16 @@ class GLaDOS:
                 need = plan_data['points']
                 days = plan_data['days']
                 if pts >= need:
-                    exchange_lines.append(f"{need}分->{days}天 (可兑换)")
+                    exchange_lines.append(f"✅ {need}分→{days}天 (可兑换)")
                 else:
-                    exchange_lines.append(f"{need}分->{days}天 (差{need-pts}分)")
+                    exchange_lines.append(f"❌ {need}分→{days}天 (差{need-pts}分)")
             self.exchange_info = "<br>".join(exchange_lines)
             return True
         return False
 
     def checkin(self):
         """执行签到"""
-        token = self._get_domain_token()
+        token = self.domain.replace("https://", "")
         return self.req('POST', '/api/user/checkin', {'token': token})
 
     def exchange(self, plan):
@@ -192,11 +178,11 @@ class GLaDOS:
             message = res.get('message', '未知错误')
             if code == 0:
                 self.exchange_result = f"兑换成功: {plan} ({required}积分)"
-                log(f"兑换成功: {plan}")
+                log(f"✅ 兑换成功: {plan}")
                 return True
             else:
                 self.exchange_result = f"兑换失败: {message}"
-                log(f"兑换失败: {message}")
+                log(f"❌ 兑换失败: {message}")
                 return False
         self.exchange_result = "兑换请求失败"
         return False
@@ -208,18 +194,68 @@ def pushplus(token, title, content):
     try:
         url = "http://www.pushplus.plus/send"
         requests.get(url, params={'token': token, 'title': title, 'content': content, 'template': 'html'}, timeout=5)
-        log("PushPlus 推送成功")
+        log("✅ PushPlus 推送成功")
     except:
-        log("PushPlus 推送失败")
+        log("❌ PushPlus 推送失败")
+
+def telegram_push(token, chat_id, title, content):
+    if not token or not chat_id: return
+    try:
+        import re
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        # Convert HTML to be Telegram-compatible
+        text = f"<b>{title}</b>\n\n{content}"
+
+        # 1. Block elements replacements (handle tags with attributes)
+        text = text.replace("<br>", "\n")
+        # Handle H3 tags
+        text = re.sub(r"<h3[^>]*>", "<b>", text)
+        text = text.replace("</h3>", "</b>\n")
+
+        # 2. Paragraph and Div tags
+        text = re.sub(r"<(div|p)[^>]*>", "", text)
+        text = re.sub(r"</(div|p)>", "\n", text)
+
+        # 3. Span and small tags
+        text = re.sub(r"<(span|small)[^>]*>", "", text)
+        text = re.sub(r"</(span|small)>", "", text)
+
+        # 4. Final cleaning: Strip all HTML tags EXCEPT the ones supported by Telegram: b, i, u, s, a, code, pre
+        text = re.sub(r"<(?!\/?(b|i|u|s|a|code|pre)\b)[^>]+>", "", text)
+
+        # 5. Dedent each line to fix alignment issues caused by HTML template indentation
+        lines = [line.strip() for line in text.split('\n')]
+        text = "\n".join(lines)
+
+        # 6. Collapse multiple newlines
+        text = re.sub(r"\n\s*\n", "\n\n", text).strip()
+
+        data = {
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "HTML"
+        }
+        log(f"发送内容: {data}")
+        resp=requests.post(url, json=data, timeout=5)
+        if resp.status_code != 200:
+            log(f"❌ Telegram 推送失败: {resp.json()}")
+            return
+        log("✅ Telegram 推送成功")
+    except Exception as e:
+        log(f"❌ Telegram 推送失败: {e}")
 
 def main():
-    log("2026 GLaDOS Checkin Starting...")
+    log("🚀 2026 GLaDOS Checkin Starting...")
     cookies = get_cookies()
     if not cookies: sys.exit(1)
 
-    exchange_plan = get_exchange_plan()
-    exchange_required = EXCHANGE_PLANS.get(exchange_plan, 500)
-    log(f"兑换计划: {exchange_plan} (需要{exchange_required}积分)")
+    # 兑换计划
+    exchange_plan = os.environ.get("GLADOS_EXCHANGE_PLAN", "plan500")
+    if exchange_plan not in EXCHANGE_PLANS:
+        log(f"⚠️ 兑换计划 '{exchange_plan}' 无效，使用默认 plan500")
+        exchange_plan = "plan500"
+    exchange_required = EXCHANGE_PLANS[exchange_plan]
+    log(f"📋 兑换计划: {exchange_plan} (需要{exchange_required}积分)")
 
     results = []
     success_cnt = 0
@@ -232,7 +268,7 @@ def main():
         res = g.checkin()
         msg = res.get('message', 'Failure') if res else "Network Error"
 
-        # 2. Get Info
+        # 2. Get Info (Refresh data)
         g.get_status()
         g.get_points()
 
@@ -240,12 +276,13 @@ def main():
         try:
             pts = int(g.points) if g.points != "?" else 0
             if pts >= exchange_required:
-                log(f"积分 {pts} >= {exchange_required}，尝试自动兑换 {exchange_plan}...")
+                log(f"💰 积分 {pts} >= {exchange_required}，尝试自动兑换 {exchange_plan}...")
                 g.exchange(exchange_plan)
         except ValueError:
             pass
 
         # 4. Log
+        status_icon = "✅" if "Checkin" in msg else "⚠️"
         log(f"用户: {g.email} | 积分: {g.points} | 天数: {g.left_days} | 结果: {msg} | 兑换: {g.exchange_result}")
 
         if "Checkin" in msg: success_cnt += 1
@@ -255,25 +292,39 @@ def main():
         exchange_display = g.exchange_result if g.exchange_result else "未触发兑换"
         results.append(f"""
 <div style="border:2px solid #333; padding:15px; margin-bottom:15px; border-radius:10px; background:#fff;">
-    <h3 style="margin:0 0 15px 0; color:#333; border-bottom:2px solid #333; padding-bottom:8px;">{g.email}</h3>
+    <h3 style="margin:0 0 15px 0; color:#333; border-bottom:2px solid #333; padding-bottom:8px;">👤 {g.email}</h3>
     <p style="margin:8px 0; color:#000; font-size:16px;"><b>当前积分:</b> <span style="color:#e74c3c; font-size:22px; font-weight:bold;">{g.points}</span> <span style="color:#27ae60; font-weight:bold;">({g.points_change})</span></p>
     <p style="margin:8px 0; color:#000; font-size:16px;"><b>剩余天数:</b> <span style="font-weight:bold;">{g.left_days} 天</span></p>
     <p style="margin:8px 0; color:#000; font-size:16px;"><b>签到结果:</b> {msg}</p>
     <p style="margin:8px 0; color:#000; font-size:16px;"><b>自动兑换:</b> {exchange_display}</p>
     <div style="margin-top:15px; padding:12px; background:#f0f0f0; border-radius:8px; border:1px solid #ccc;">
-        <p style="margin:0 0 8px 0; color:#333; font-weight:bold; font-size:15px;">兑换选项:</p>
-        <p style="margin:0; color:#000; font-size:14px; line-height:1.8;">{g.exchange_info}</p>
+        <p style="margin:0 0 8px 0; color:#333; font-weight:bold; font-size:15px;">🎁 兑换选项:</p>
+        <p style="margin:0; color:#000; font-size:14px; line-height:1.8;">
+{g.exchange_info}</p>
     </div>
 </div>
 """)
 
     # Push
+    push_level = os.environ.get("PUSH_LEVEL", "all").lower()
+
+    if push_level == "fail_only" and success_cnt == len(cookies):
+        log("⏭️ 根据 PUSH_LEVEL=fail_only 设置，所有账号签到成功，跳过推送")
+        return
+
     ptoken = os.environ.get("PUSHPLUS_TOKEN")
-    if ptoken:
-        title = f"GLaDOS签到: {success_cnt}/{len(cookies)}成功, {exchange_cnt}兑换"
+    tg_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    tg_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+
+    if ptoken or (tg_token and tg_chat_id):
+        title = f"GLaDOS签到: 成功{success_cnt}/{len(cookies)}"
         content = "".join(results)
         content += f"<br><small>时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</small>"
-        pushplus(ptoken, title, content)
+
+        if ptoken:
+            pushplus(ptoken, title, content)
+        if tg_token and tg_chat_id:
+            telegram_push(tg_token, tg_chat_id, title, content)
 
 if __name__ == '__main__':
     main()
